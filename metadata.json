@@ -1,0 +1,5 @@
+{
+  "name": "ResuMinds",
+  "description": "An intelligent resume builder offering multiple professional templates and AI-powered content improvements using Google Gemini.",
+  "requestFramePermissions": []
+}
