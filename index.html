@@ -6,28 +6,59 @@
     <title>ResuMinds - AI Resume Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@300;400;700&family=Roboto+Mono:wght@400;500&display=swap');
-      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&family=Oswald:wght@400;500&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Roboto+Mono:wght@400;500&display=swap');
+      
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
 
-      /* Print settings */
+      /* Scrollbar cleanup */
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      /* HIGH FIDELITY PRINT CSS */
       @media print {
         @page {
-          margin: 0;
-          size: auto;
+          size: A4;
+          margin: 0 !important;
         }
         
         body {
-          margin: 0;
-          padding: 0;
-          background: white;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
 
-        /* Ensure links don't show URLs in parens (common browser default) */
-        a[href]:after {
-          content: none !important;
+        /* Prevent page breaks inside entries */
+        .break-inside-avoid {
+          page-break-inside: avoid;
+          break-inside: avoid;
         }
+
+        /* Hide everything except the resume container */
+        header, .print-hidden, button, form {
+          display: none !important;
+        }
+
+        #root, .h-screen {
+          height: auto !important;
+          overflow: visible !important;
+        }
+
+        /* Force resume to fill width */
+        div[class*="w-[210mm]"] {
+          width: 100% !important;
+          min-height: 100% !important;
+          box-shadow: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          border: none !important;
+        }
+
+        a[href]:after { content: none !important; }
       }
     </style>
   <script type="importmap">

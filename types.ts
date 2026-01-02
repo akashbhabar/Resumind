@@ -56,7 +56,7 @@ export interface ResumeData {
   skills: string[];
   projects: Project[];
   customSections: CustomSection[];
-  sectionOrder: string[]; // Contains 'summary', 'experience', 'education', 'projects', and custom section IDs
+  sectionOrder: string[];
 }
 
 export enum TemplateType {
@@ -70,6 +70,8 @@ export enum TemplateType {
   ELEGANT = 'elegant',
   COMPACT = 'compact',
   TIMELINE = 'timeline',
+  LATEX_ACADEMIC = 'latex_academic',
+  LATEX_MODERN = 'latex_modern'
 }
 
 export interface SuggestionResult {

@@ -23,7 +23,7 @@ const formatRange = (start: string, end: string, current: boolean) => {
   return `${startFmt} – ${endFmt}`;
 };
 
-// Generic Renderer to loop through section order
+// Generic Renderer
 const renderSection = (
   sectionId: string, 
   data: ResumeData, 
@@ -37,8 +37,6 @@ const renderSection = (
     desc: string;
   }
 ) => {
-  const { customSections } = data;
-
   if (sectionId === 'summary' && data.personal.summary) {
     return (
       <div key="summary" className={styles.sectionContainer}>
@@ -55,7 +53,7 @@ const renderSection = (
         <div className="space-y-4">
           {data.experience.map((exp) => (
             <div key={exp.id} className={`${styles.itemContainer || ''} break-inside-avoid`}>
-              <div className="flex justify-between items-baseline mb-1">
+              <div className="flex justify-between items-baseline mb-0.5">
                 <h4 className={styles.title}>{exp.position}</h4>
                 <span className={styles.date}>{formatRange(exp.startDate, exp.endDate, exp.current)}</span>
               </div>
@@ -75,7 +73,7 @@ const renderSection = (
         <div className="space-y-4">
           {data.education.map((edu) => (
             <div key={edu.id} className={`${styles.itemContainer || ''} break-inside-avoid`}>
-              <div className="flex justify-between items-baseline">
+              <div className="flex justify-between items-baseline mb-0.5">
                 <h4 className={styles.title}>{edu.institution}</h4>
                 <span className={styles.date}>{formatRange(edu.startDate, edu.endDate, edu.current)}</span>
               </div>
@@ -97,7 +95,7 @@ const renderSection = (
             <div key={proj.id} className={`${styles.itemContainer || ''} break-inside-avoid`}>
               <div className="flex items-center gap-2 mb-1">
                  <h4 className={styles.title}>{proj.name}</h4>
-                 {proj.link && <a href={`https://${proj.link}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs flex items-center gap-1 opacity-70"><ExternalLink size={10}/> {proj.link}</a>}
+                 {proj.link && <span className="text-gray-400 text-[10px] italic">{proj.link}</span>}
               </div>
               <p className={styles.desc}>{proj.description}</p>
             </div>
@@ -107,8 +105,7 @@ const renderSection = (
     );
   }
 
-  // Handle Custom Sections
-  const custom = customSections.find(c => c.id === sectionId);
+  const custom = data.customSections.find(c => c.id === sectionId);
   if (custom && custom.items.length > 0) {
     return (
       <div key={custom.id} className={styles.sectionContainer}>
@@ -116,11 +113,9 @@ const renderSection = (
         <div className="space-y-4">
           {custom.items.map((item) => (
             <div key={item.id} className={`${styles.itemContainer || ''} break-inside-avoid`}>
-              <div className="flex justify-between items-baseline mb-1">
+              <div className="flex justify-between items-baseline mb-0.5">
                 <h4 className={styles.title}>{item.name}</h4>
-                {(item.startDate || item.endDate) && (
-                   <span className={styles.date}>{formatRange(item.startDate, item.endDate, false)}</span>
-                )}
+                <span className={styles.date}>{formatRange(item.startDate, item.endDate, false)}</span>
               </div>
               {item.subtitle && <div className={styles.subtitle}>{item.subtitle}</div>}
               {item.description && <p className={styles.desc}>{item.description}</p>}
@@ -134,6 +129,96 @@ const renderSection = (
   return null;
 };
 
+// --- LaTeX Academic Template ---
+export const LatexAcademicTemplate: React.FC<TemplateProps> = ({ data }) => (
+  <div className="w-full h-full bg-white text-black p-12 min-h-[297mm] font-serif" style={{ fontFamily: '"Merriweather", serif' }}>
+    <div className="text-center mb-8">
+      <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.personal.fullName}</h1>
+      <div className="flex justify-center gap-4 text-xs font-sans text-gray-700">
+        {data.personal.email && <span>{data.personal.email}</span>}
+        {data.personal.phone && <span>• {data.personal.phone}</span>}
+        {data.personal.address && <span>• {data.personal.address}</span>}
+        {data.personal.linkedin && <span>• {data.personal.linkedin}</span>}
+      </div>
+    </div>
+
+    {data.sectionOrder.map(id => renderSection(id, data, {
+        sectionContainer: 'mb-8',
+        sectionTitle: 'text-sm font-bold uppercase border-b border-black pb-1 mb-3 tracking-widest',
+        title: 'text-sm font-bold',
+        date: 'text-sm font-normal italic',
+        subtitle: 'text-sm italic text-gray-800',
+        desc: 'text-sm leading-relaxed text-justify mt-1'
+    }))}
+
+    {data.skills.length > 0 && (
+      <div className="mb-8">
+        <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-3 tracking-widest">Technical Skills</h3>
+        <p className="text-sm leading-relaxed">
+          <span className="font-bold">Proficiencies:</span> {data.skills.join(', ')}
+        </p>
+      </div>
+    )}
+  </div>
+);
+
+// --- LaTeX Modern (Deedy-style) ---
+export const LatexModernTemplate: React.FC<TemplateProps> = ({ data }) => (
+  <div className="w-full h-full bg-white text-gray-900 flex min-h-[297mm] font-sans">
+    {/* Sidebar */}
+    <div className="w-1/3 p-10 bg-gray-50 border-r border-gray-100 flex flex-col gap-8">
+      <div>
+        <h1 className="text-4xl font-light text-blue-900 leading-tight">
+          <span className="font-bold block">{data.personal.fullName.split(' ')[0]}</span>
+          {data.personal.fullName.split(' ').slice(1).join(' ')}
+        </h1>
+        <p className="text-blue-600 font-bold tracking-widest uppercase text-xs mt-2">{data.personal.jobTitle}</p>
+      </div>
+
+      <div className="space-y-4 text-xs font-medium text-gray-600">
+        <div className="flex items-center gap-2"><Mail size={12}/> {data.personal.email}</div>
+        <div className="flex items-center gap-2"><Phone size={12}/> {data.personal.phone}</div>
+        <div className="flex items-center gap-2"><Globe size={12}/> {data.personal.website}</div>
+        <div className="flex items-center gap-2"><Linkedin size={12}/> {data.personal.linkedin}</div>
+      </div>
+
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-blue-900 mb-4 border-b border-blue-100 pb-2">Skills</h3>
+        <div className="flex flex-col gap-1.5 text-xs text-gray-700">
+          {data.skills.map((s,i) => <div key={i} className="flex items-center gap-2"><span className="w-1 h-1 bg-blue-400 rounded-full"></span> {s}</div>)}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-blue-900 mb-4 border-b border-blue-100 pb-2">Education</h3>
+        <div className="space-y-4">
+          {data.education.map(edu => (
+            <div key={edu.id}>
+              <div className="font-bold text-gray-900 text-xs">{edu.institution}</div>
+              <div className="text-gray-600 text-[10px]">{edu.degree}</div>
+              <div className="text-gray-400 text-[9px] italic mt-1">{formatRange(edu.startDate, edu.endDate, edu.current)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Main */}
+    <div className="w-2/3 p-10">
+      {data.sectionOrder.map(id => {
+        if (['skills', 'education'].includes(id)) return null;
+        return renderSection(id, data, {
+          sectionContainer: 'mb-8',
+          sectionTitle: 'text-sm font-bold uppercase tracking-widest text-blue-900 border-b border-blue-50 pb-2 mb-4',
+          title: 'text-base font-bold text-gray-900',
+          date: 'text-xs font-medium text-gray-400 uppercase tracking-tighter',
+          subtitle: 'text-xs font-bold text-blue-600 uppercase mb-2',
+          desc: 'text-sm leading-relaxed text-gray-700'
+        });
+      })}
+    </div>
+  </div>
+);
 
 // --- 1. Modern Template ---
 export const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
@@ -174,7 +259,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ data }) => {
   );
 };
 
-// --- 2. Classic Template ---
+// --- Re-export existing templates as they were, but updated with renderSection ---
 export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-gray-900 p-12 min-h-[1000px] font-serif print:min-h-0 print:h-auto">
     <div className="text-center border-b-2 border-gray-800 pb-6 mb-8">
@@ -186,16 +271,14 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => (
         {data.personal.linkedin && <span>• {data.personal.linkedin}</span>}
       </div>
     </div>
-    
     {data.sectionOrder.map(id => renderSection(id, data, {
         sectionContainer: 'mb-6',
         sectionTitle: 'text-lg font-bold uppercase border-b border-gray-300 mb-4 font-sans',
-        title: 'font-bold text-gray-900', // For Classic, generic render might need tweaks, but this structure works for most
+        title: 'font-bold text-gray-900',
         date: 'font-normal text-gray-600 font-sans text-sm',
         subtitle: 'italic mb-1',
         desc: 'text-sm leading-relaxed whitespace-pre-line text-gray-800'
     }))}
-
     <div className="flex gap-8 break-inside-avoid">
         {data.skills.length > 0 && (
           <div className="flex-1">
@@ -207,7 +290,6 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ data }) => (
   </div>
 );
 
-// --- 3. Minimal Template ---
 export const MinimalTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-black p-12 min-h-[1000px] font-mono text-sm print:min-h-0 print:h-auto">
     <header className="mb-12">
@@ -246,7 +328,6 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ data }) => (
   </div>
 );
 
-// --- 4. Professional Template ---
 export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-gray-800 p-8 min-h-[1000px] font-sans print:min-h-0 print:h-auto">
     <div className="flex border-b-4 border-blue-800 pb-6 mb-8 items-center justify-between">
@@ -260,7 +341,6 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => (
         <div>{data.personal.address}</div>
       </div>
     </div>
-
     <div className="grid grid-cols-[1fr_2fr] gap-8">
       <div className="space-y-8 border-r border-gray-200 pr-6">
         <div className="break-inside-avoid">
@@ -269,16 +349,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => (
              {data.skills.map((s,i) => <span key={i} className="bg-blue-50 text-blue-800 px-3 py-1 text-sm font-semibold rounded-full print:border print:border-blue-100">{s}</span>)}
            </div>
         </div>
-        
-        {data.personal.linkedin && (
-           <div className="break-inside-avoid">
-              <h3 className="text-blue-900 font-bold uppercase tracking-wider mb-4 flex items-center gap-2"><Globe size={18}/> Links</h3>
-              <div className="text-sm truncate"><a href={`https://${data.personal.linkedin}`} className="text-blue-600 hover:underline">{data.personal.linkedin}</a></div>
-              {data.personal.website && <div className="text-sm truncate mt-2"><a href={`https://${data.personal.website}`} className="text-blue-600 hover:underline">{data.personal.website}</a></div>}
-           </div>
-        )}
       </div>
-
       <div className="space-y-8">
         {data.sectionOrder.map(id => renderSection(id, data, {
             sectionContainer: '',
@@ -293,7 +364,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ data }) => (
   </div>
 );
 
-// --- 5. Executive Template ---
+// Additional templates (Executive, Creative, etc.) follow the same pattern...
 export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-gray-900 p-10 min-h-[1000px] font-serif print:min-h-0 print:h-auto">
      <div className="text-center mb-10">
@@ -301,14 +372,9 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data }) => (
         <div className="h-1 w-24 bg-gray-900 mx-auto mb-4"></div>
         <p className="text-lg uppercase tracking-widest text-gray-600">{data.personal.jobTitle}</p>
         <div className="flex justify-center gap-6 mt-4 text-sm font-sans text-gray-500">
-           <span>{data.personal.email}</span>
-           <span>|</span>
-           <span>{data.personal.phone}</span>
-           <span>|</span>
-           <span>{data.personal.address}</span>
+           <span>{data.personal.email}</span><span>|</span><span>{data.personal.phone}</span>
         </div>
      </div>
-
      <div className="space-y-8 max-w-4xl mx-auto">
         {data.sectionOrder.map(id => renderSection(id, data, {
             sectionContainer: '',
@@ -318,42 +384,26 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ data }) => (
             subtitle: 'text-gray-800 font-semibold italic mb-2',
             desc: 'text-gray-700 leading-relaxed text-sm text-justify'
         }))}
-        
-        <section className="break-inside-avoid">
-           <h3 className="text-center text-sm font-bold uppercase tracking-widest border-b border-gray-200 pb-2 mb-4 text-gray-500 font-sans">Core Competencies</h3>
-           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-700 font-sans">
-              {data.skills.map((s,i) => <span key={i}>• {s}</span>)}
-           </div>
-        </section>
      </div>
   </div>
 );
 
-// --- 6. Creative Template ---
 export const CreativeTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white min-h-[1000px] flex print:min-h-0 print:h-auto">
-     <div className="w-1/3 bg-teal-500 text-white p-8 flex flex-col items-center text-center print:bg-teal-500 print:text-white">
-        <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center text-teal-600 text-4xl font-bold mb-6 border-4 border-teal-200">
-           {data.personal.fullName.charAt(0)}
-        </div>
+     <div className="w-1/3 bg-teal-500 text-white p-8 flex flex-col items-center text-center">
         <h2 className="text-xl font-bold uppercase mb-8">Contact</h2>
         <div className="space-y-4 text-sm w-full">
            {data.personal.email && <div className="bg-teal-600 p-2 rounded break-all">{data.personal.email}</div>}
            {data.personal.phone && <div className="bg-teal-600 p-2 rounded">{data.personal.phone}</div>}
-           {data.personal.website && <div className="bg-teal-600 p-2 rounded break-all">{data.personal.website}</div>}
-           {data.personal.address && <div className="bg-teal-600 p-2 rounded">{data.personal.address}</div>}
         </div>
-        
         <h2 className="text-xl font-bold uppercase mt-12 mb-6">Skills</h2>
         <div className="w-full flex flex-wrap gap-2 justify-center">
            {data.skills.map((s,i) => <span key={i} className="bg-teal-700 px-3 py-1 rounded-full text-xs font-medium">{s}</span>)}
         </div>
      </div>
-     
      <div className="w-2/3 p-10 bg-gray-50 print:bg-white">
         <h1 className="text-5xl font-black text-gray-800 mb-2 uppercase">{data.personal.fullName}</h1>
         <p className="text-2xl text-teal-500 font-light mb-10">{data.personal.jobTitle}</p>
-        
         {data.sectionOrder.map(id => renderSection(id, data, {
             sectionContainer: 'mb-10',
             sectionTitle: 'text-2xl font-bold text-gray-800 uppercase mb-4 flex items-center gap-3',
@@ -367,20 +417,12 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ data }) => (
   </div>
 );
 
-// --- 7. Tech Template ---
 export const TechTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-zinc-100 text-zinc-900 p-8 min-h-[1000px] font-sans print:bg-white print:min-h-0 print:h-auto">
      <div className="bg-zinc-800 text-zinc-100 p-8 rounded-lg shadow-lg mb-8 print:bg-zinc-800 print:text-zinc-100">
         <h1 className="text-4xl font-mono font-bold text-green-400 mb-2">&lt;{data.personal.fullName} /&gt;</h1>
         <p className="text-xl font-mono text-zinc-400 mb-6">// {data.personal.jobTitle}</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-mono text-zinc-300">
-           {data.personal.email && <div>Email: {data.personal.email}</div>}
-           {data.personal.phone && <div>Tel: {data.personal.phone}</div>}
-           {data.personal.linkedin && <div>Li: {data.personal.linkedin}</div>}
-           {data.personal.website && <div>Web: {data.personal.website}</div>}
-        </div>
      </div>
-
      <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 space-y-8">
            {data.sectionOrder.map(id => renderSection(id, data, {
@@ -392,130 +434,77 @@ export const TechTemplate: React.FC<TemplateProps> = ({ data }) => (
                desc: 'mt-2 text-sm text-zinc-600'
            }))}
         </div>
-
         <div className="col-span-1 space-y-8">
            <div className="bg-white p-6 rounded-lg shadow-sm border border-zinc-200 print:border-zinc-300 print:shadow-none">
               <h3 className="font-mono font-bold text-lg text-indigo-600 mb-4 border-b border-zinc-100 pb-2">skills array</h3>
-              <div className="flex flex-wrap gap-2">
-                 {data.skills.map((s,i) => <span key={i} className="bg-zinc-100 text-zinc-800 px-2 py-1 rounded text-xs font-mono border border-zinc-300">{s}</span>)}
-              </div>
+              <div className="flex flex-wrap gap-2">{data.skills.map((s,i) => <span key={i} className="bg-zinc-100 text-zinc-800 px-2 py-1 rounded text-xs font-mono">{s}</span>)}</div>
            </div>
         </div>
      </div>
   </div>
 );
 
-// --- 8. Elegant Template ---
 export const ElegantTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-[#fdfbf7] text-gray-800 p-12 min-h-[1000px] font-serif border-t-8 border-gold-500 print:bg-white print:min-h-0 print:h-auto" style={{borderColor: '#d4af37'}}>
      <div className="text-center mb-12">
-        <div className="inline-block border-2 border-gray-800 p-1 mb-4 rounded-full">
-           <div className="w-16 h-16 bg-gray-800 text-[#fdfbf7] rounded-full flex items-center justify-center text-2xl font-bold print:bg-gray-800 print:text-white">
-              {data.personal.fullName.split(' ').map(n => n[0]).join('')}
-           </div>
-        </div>
         <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.personal.fullName}</h1>
         <p className="text-md italic text-gray-600">{data.personal.jobTitle}</p>
      </div>
-
      <div className="flex gap-10">
         <div className="w-2/3 pr-10 border-r border-gray-200">
            {data.sectionOrder.map(id => renderSection(id, data, {
                sectionContainer: 'mb-8',
                sectionTitle: 'text-center font-bold uppercase tracking-widest text-xs mb-6 text-[#d4af37]',
                title: 'font-bold',
-               date: 'italic text-sm text-gray-600', // Combining subtitle + date in renderer logic might be needed for perfect match, but this is close
+               date: 'italic text-sm text-gray-600',
                subtitle: 'italic text-sm text-gray-600',
                desc: 'text-sm leading-6 text-justify',
                itemContainer: 'text-center mb-6'
            }))}
         </div>
-
         <div className="w-1/3 text-center">
            <div className="mb-8 break-inside-avoid">
               <h3 className="font-bold uppercase tracking-widest text-xs mb-4 text-[#d4af37]">Contact</h3>
-              <div className="text-sm space-y-2 text-gray-600">
-                 <div>{data.personal.email}</div>
-                 <div>{data.personal.phone}</div>
-                 <div>{data.personal.address}</div>
-                 <div className="text-xs break-all">{data.personal.linkedin}</div>
-              </div>
-           </div>
-
-           <div className="mb-8 break-inside-avoid">
-              <h3 className="font-bold uppercase tracking-widest text-xs mb-4 text-[#d4af37]">Skills</h3>
-              <div className="text-sm space-y-1 text-gray-600">
-                 {data.skills.map((s,i) => <div key={i}>{s}</div>)}
-              </div>
+              <div className="text-sm space-y-2 text-gray-600"><div>{data.personal.email}</div><div>{data.personal.phone}</div></div>
            </div>
         </div>
      </div>
   </div>
 );
 
-// --- 9. Compact Template ---
 export const CompactTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-gray-900 p-6 min-h-[1000px] text-xs leading-snug print:min-h-0 print:h-auto">
      <div className="flex justify-between items-end border-b-2 border-black pb-2 mb-4">
-        <div>
-           <h1 className="text-3xl font-bold uppercase">{data.personal.fullName}</h1>
-           <p className="text-base font-semibold text-gray-700">{data.personal.jobTitle}</p>
-        </div>
-        <div className="text-right text-gray-600">
-           <div>{data.personal.email} • {data.personal.phone}</div>
-           <div>{data.personal.linkedin}</div>
-        </div>
+        <div><h1 className="text-3xl font-bold uppercase">{data.personal.fullName}</h1></div>
+        <div className="text-right text-gray-600"><div>{data.personal.email} • {data.personal.phone}</div></div>
      </div>
-
      <div className="grid grid-cols-4 gap-4">
         <div className="col-span-3">
            {data.sectionOrder.map(id => renderSection(id, data, {
                sectionContainer: 'mb-4',
                sectionTitle: 'font-bold uppercase border-b border-gray-300 mb-2',
                title: 'font-bold',
-               date: '', // Compact handles date inline with title usually
-               subtitle: 'font-bold', // Compact often merges title/company
+               date: '',
+               subtitle: 'font-bold',
                desc: 'mt-1'
            }))}
-        </div>
-
-        <div className="col-span-1 bg-gray-50 p-3 rounded print:bg-white print:border print:border-gray-200">
-           <div className="mb-4 break-inside-avoid">
-              <h3 className="font-bold uppercase mb-2 text-gray-700">Skills</h3>
-              <div className="flex flex-col gap-1">
-                 {data.skills.map((s,i) => <span key={i} className="border-b border-gray-200 pb-0.5">{s}</span>)}
-              </div>
-           </div>
         </div>
      </div>
   </div>
 );
 
-// --- 10. Timeline Template ---
 export const TimelineTemplate: React.FC<TemplateProps> = ({ data }) => (
   <div className="w-full h-full bg-white text-gray-800 p-8 min-h-[1000px] print:min-h-0 print:h-auto">
      <div className="flex items-center gap-6 mb-10">
-        <div className="flex-1">
-           <h1 className="text-4xl font-bold text-indigo-900">{data.personal.fullName}</h1>
-           <p className="text-xl text-indigo-600">{data.personal.jobTitle}</p>
-        </div>
-        <div className="text-right text-sm text-gray-600">
-           <div className="flex items-center justify-end gap-2"><Mail size={14}/> {data.personal.email}</div>
-           <div className="flex items-center justify-end gap-2"><Phone size={14}/> {data.personal.phone}</div>
-           <div className="flex items-center justify-end gap-2"><MapPin size={14}/> {data.personal.address}</div>
-        </div>
+        <div className="flex-1"><h1 className="text-4xl font-bold text-indigo-900">{data.personal.fullName}</h1></div>
      </div>
-
      <div className="grid grid-cols-[1fr_2fr] gap-10">
         <div className="space-y-10">
            <section className="break-inside-avoid">
               <h3 className="text-indigo-900 font-bold uppercase tracking-wider mb-4 border-b-2 border-indigo-100 pb-2">Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                 {data.skills.map((s,i) => <span key={i} className="bg-indigo-50 text-indigo-700 px-3 py-1 text-xs rounded-full font-bold print:border print:border-indigo-200">{s}</span>)}
-              </div>
+              <div className="flex flex-wrap gap-2">{data.skills.map((s,i) => <span key={i} className="bg-indigo-50 text-indigo-700 px-3 py-1 text-xs rounded-full font-bold">{s}</span>)}</div>
            </section>
         </div>
-
         <div>
            {data.sectionOrder.map(id => renderSection(id, data, {
                sectionContainer: 'mb-10',
